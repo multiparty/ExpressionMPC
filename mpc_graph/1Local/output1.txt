@@ -1,0 +1,18 @@
+Org0 (1)
+States:
+P1_0:1;
+P1_1:0;
+P1_2:2;
+P1_3:1;
+P1_4:2;
+P1_5:2;
+Transitions:
+P1_3:P1_1:false:;
+P1_2:P1_3:false:;
+P1_4:P1_2:false:;
+P1_4:P1_5:false:;
+P1_4:P1_3:false:;
+P1_2:P1_0:false:;
+P1_0:P1_1:false:;
+P1_5:P1_0:false:;
+P1_5:P1_2:false:;

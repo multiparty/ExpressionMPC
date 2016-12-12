@@ -1,0 +1,4 @@
+#!/bin/bash
+python viff_pure.py --no-ssl configs/player-1.ini > o1.txt &
+python viff_pure.py --no-ssl configs/player-2.ini > o2.txt &
+python viff_pure.py --no-ssl configs/player-3.ini

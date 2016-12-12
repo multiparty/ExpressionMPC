@@ -1,0 +1,27 @@
+Org0 (0)
+States:
+P0_0:0;
+P0_1:1;
+P0_2:1;
+P0_3:1;
+P0_5:2;
+P0_6:1;
+P0_7:0;
+P0_8:2;
+P0_9:2;
+Transitions:
+P0_7:P0_3:false:;
+P0_7:P0_6:false:;
+P0_0:P0_2:false:;
+P0_0:P0_3:false:;
+P0_2:P0_5:false:;
+P0_2:P0_8:false:;
+P0_6:P0_5:false:;
+P0_6:P0_9:false:;
+P0_1:P0_5:false:;
+P0_1:P0_0:false:;
+P0_1:P0_7:false:;
+P0_6:P0_3:false:;
+P0_9:P0_3:false:;
+P0_5:P0_9:false:;
+P0_5:P0_8:false:;

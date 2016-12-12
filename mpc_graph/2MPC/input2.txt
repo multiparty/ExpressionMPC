@@ -1,0 +1,20 @@
+Kripke Structure (1, 2)
+states:
+P0_3:X:false:true;
+P0_8:X:false:true;
+P0_9:X:false:true;
+P1_1:X:false:true;
+P2_0:1:false:true;
+P2_4:2:false:true;
+transitions:
+P0_9:P0_3:false:X;
+P1_1:P0_8:true:;
+P2_4:P0_9:true:;
+P2_4:P1_1:true:;
+P2_0:P0_3:true:;
+P0_9:P1_1:true:;
+P2_0:P0_9:true:;
+P2_4:P0_8:true:;
+P2_0:P2_4:false:3;
+P0_3:P0_8:false:X;
+P0_8:P0_9:false:X;

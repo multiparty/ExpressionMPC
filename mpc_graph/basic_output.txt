@@ -1,0 +1,17 @@
+CF549D81(2)
+states:
+P0_0:2;
+P1_1:1;
+P2_2:1;
+P3_3:2;
+P4_4:0;
+P5_5:1;
+transitions:
+P0_0:P5_5:false:;
+P4_4:P5_5:false:;
+P2_2:P4_4:false:;
+P1_1:P2_2:false:;
+P1_1:P3_3:false:;
+P2_2:P5_5:false:;
+P1_1:P4_4:false:;
+P0_0:P3_3:false:;
