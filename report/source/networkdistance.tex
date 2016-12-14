@@ -1,0 +1,29 @@
+Given an un-directed graph $G$ with a set $V$ of nodes. Nodes can be either safe or vulnerable. We must find the shortest distance between each node and the closest vulnerable node. We assume initially that vulnerable nodes have distance $0$, and safe nodes have distance $\infty$. More formally, the function we are trying to compute is:
+	$$f(n) = \min_{v \in VN}(dist(n,v))$$
+Where $VN$ is the set of vulnerable nodes, and $dist(n,v)$ is the shortest distance between nodes $n$ and $v$. \\
+
+%% ALGORITHM
+\begin{algorithm}
+\caption{Network Distance}
+\label{algo}
+
+\begin{algorithmic}[1]
+\State $i \gets 0$
+\While{$i < \texttt{iterations}$}
+\For{$n \in V$}
+\State $m \gets \min\limits_{v \in nb(n)}(d_i[v] + 1)$
+\State $d_{i+1}[n] \gets min(d_i[n], m)$
+\EndFor
+\State $i \gets i + 1$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+%% END OF [ALGORITHM]
+
+Algorithm \ref{algo} gives a simple algorithm for computing network distance. $nb(n)$ is the set of neighbors of $n$. $d_i[n]$ is the distance computed at iteration $i$ for node $n$. Notice that initially $d_0[n] = 0$ or $\infty$ if n was vulnerable or safe respectively. The number of iterations can be set to the number of nodes. However, it is sufficient to set it to the diameter of the graph. The runtime of the algorithm is $O(n \times d \times k)$, where $n,d,k$ are the number of nodes, diameter, and degree respectively. Notice that if $n$ is fixed then $d$ quickly decreases if $k$ is increased (by Moore's upper bound \cite{moore}). \\ \vspace{5mm}
+
+We consider input networks that are composed of the following parts: \begin{enumerate}
+\item Several private networks, each belonging to a party. The number of nodes in these networks and their connections is unknown. Each private network interacts with the rest through a number of publicly-known gateways (a small subset of the private nodes).
+
+\item A public network that connects gateways of different parties. The number of gateway nodes per party and their connections with gateway nodes of other parties is assumed to be public information. Notice that an edge between two gateways of the same party is considered private and not part of the public network. The total number of gateways is assumed to be much smaller than the total number of nodes in the entire network.
+\end{enumerate}

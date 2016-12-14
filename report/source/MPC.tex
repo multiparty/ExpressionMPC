@@ -1,0 +1,74 @@
+\documentclass[final,3p,times,12pt]{elsarticle}
+
+\makeatletter %% HIDE WEIRD FOOTER
+\def\ps@pprintTitle{%
+ \let\@oddhead\@empty
+ \let\@evenhead\@empty
+ \def\@oddfoot{\centerline{\thepage}}%
+ \let\@evenfoot\@oddfoot}
+\makeatother
+
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\begin{document}
+\begin{frontmatter}
+
+\title{Project Report for ``Secure Multiparty Computation at scale'' \\
+Fast MPC Network Distance by Symbolic Optimization of Unrolled Loops}
+
+\author[kbab]{Kinan Dak Albab}
+\author[ra1issa]{Rawane Issa}
+\address[kbab]{Boston University}
+\address[ra1issa]{Boston University}
+
+
+\begin{abstract}
+Secure Multiparty Computation (MPC) is a growing field with many important applications. The main technical obstacle hindering its use in a wide range of domains is its performance (when compared to equivalent "open" computation). In this paper, we attempt to apply MPC to securely compute network distances over a large network formed by multiple private sub-networks. We apply two techniques for speeding up the computation: (1) Performing the computation in stages, where the first stage is done privately by each party, and the second stage is an MPC computation over a much smaller network. (2) Optimizing the MPC stage by unrolling the execution of the algorithm into a symbolic expression, and optimizing the expression to reduce the number of min operations. 
+\end{abstract}
+
+\begin{keyword}
+Secure multiparty computing \sep Network distance \sep Symbolic expressions \sep Unrolling loops.
+\end{keyword}
+
+\end{frontmatter}
+
+%% main text
+\section{Introduction}
+\input{intro}
+
+\section{Problem Definition}
+\input{networkdistance}
+
+\subsection{Security Assumptions}
+\input{security}
+
+\section{Difficulties}
+\input{difficulties}
+
+\section{Computation Stages}
+\input{stages}
+
+\section{Expression Trees}
+\input{expression}
+
+\section{Tool-set and Implementation}
+\input{tool}
+
+\section{Future Work}
+\input{future}
+
+\section{Summary}
+\input{summary}
+\section*{References}
+
+\bibliographystyle{refrences}
+\bibliography{refrences.bib}
+
+%% \appendix
+%% \section{Example Network}
+
+\end{document}

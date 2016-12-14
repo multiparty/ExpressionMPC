@@ -1,0 +1,26 @@
+Each of the symbolic expressions attained by running the algorithm symbolically (as described in the previous section) is represented as a parse tree. Given the algorithm we are using, the parse tree is defined as follows:
+$$ exp ::= \quad <int> \quad | \quad X_n \quad | \quad W_{n}^{m} $$
+$$\quad | \quad min(<exp>, ..., <exp>) $$
+$$ | \quad <exp> + ... + <exp> $$
+
+Where $X_n$, $W_{n}^{m}$ are symbolic values / variables representing the secretly-shared distance of gateway $n$, and ``weight'' between gateways $n$ and $m$ (all computed in the local stage by parties). \\
+
+Furthermore, the tree would be made of alternating levels of min and addition operators. Where we have a min on top (representing a single iteration for a single node in the algorithm), and its children are addition operators (each neighbor's expression + 1 or each gateway's expression from the same party + a weight). And the leafs are $X$ variables representing the input. \\
+
+Our goal is to optimize the expression by applying reductions to the parse trees, the reductions will utilize the algebraic properties of $+$ and $min$. We would like to reduce the number of $min$ operators while pushing them all the way up to the root of the tree. For this we will use the given reductions:
+\begin{enumerate}
+\item \emph{\textbf{Addition-Min Reduction:}} Given a parse tree of the form $min(<exp0>, ..., <expn>) + (<expA> + ... <expN>)$, we will reduce this expression by taking the addition inside the min operator. The resulting parse tree will be $min(<exp0> + <exp>, ..., <expn> + <exp>)$ where $<exp> = <expA> + ... <expN>$. Notice that the resulting min will have the same number of arguments as the min we started with. Also, $<expA>$ to $<expN>$ are guaranteed to not contain a min operator since the algorithm only adds $1$ or ``weights''.
+\item \emph{\textbf{Min-Min Reduction:}} Given a parse tree of the form $min( min(<exp0>, ..., <expn>), ..., min(<expm>, ..., <expk>))$, we will reduce this expression to a single min operator by adopting all the children of the nested mins. The resulting expression will be $min(<exp0>, ..., <expn>, ..., <expm>, ..., <expk>)$.
+\item \emph{\textbf{Early-Min Reduction:}} Given a parse tree of the form $(min(<exp0>, ..., <expn>)$, assuming that the arguments do not contain any min operators, we will attempt to reduce this min to an equivalent min with less than or equal number arguments. We will look for arguments that cannot be be the desired min and remove it. In other words, we will remove argument $<expi>$ if we can find another argument $<expj>$ such that $<expi>$ < $<expj>$. Duplicate expressions are removed except for one.
+\end{enumerate}
+
+We apply the first two reductions in alternation starting from the bottom of the parse tree up, since the parse tree is itself alternating between addition and min operators. This will simplify the parse tree to an equivalent single min operator without removing any argument to a min operator (that is not a min itself). Note that the algorithm itself can be modified to produce such an expression immediately by applying the reductions in every iteration. \\
+
+We apply the third reduction to the resulting expression made of a single min operator. The third reduction will remove an argument $<exp> = X_n + W_0 + ... + W_m + i$ in the following cases:
+\begin{itemize}
+\item Another argument of the form $X_n + W_0 + ... + W_m + i'$ exists and $i' < i$.
+\item Another argument with $X_n$ exists which has $i' \leq i$ that uses a strict subset of weights.
+\item Another argument with $X_n$ exists which has $i' - i = k > 0$ but utilizes a strict subset of weights with at least $k$ less weights (since all weights are $\geq 1$).
+\end{itemize}
+
+For cases where each node has exactly one gateway (no ``weights'' exist). We are guaranteed that we will get an expression with a single min and as many arguments as nodes. Since all the arguments are on the form $X_n + i$. The number of arguments is larger than that for networks with weights and it depends on the structure of the network, since expressions with many weights are easier to remove if they include high integer constants. We discuss possible ways to achieve more optimization when many weights are involved in the future work section.

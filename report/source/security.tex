@@ -1,0 +1,7 @@
+The security model is assumed to be semi-honest\cite{security}. We briefly discuss active security in the end of the paper. Each party is supposed to learn only the distances for its own nodes, thus our MPC provides different outputs to each party. The parties are interested in hiding the following information: \begin{enumerate}
+\item The topology of a party's private network. Including the total number of nodes and their connections.
+\item The shortest path along which a vulnerable node propagated to any node in a party's output.
+\item The origin of a vulnerability, i.e. which node or party network is a vulnerability coming from.
+\end{enumerate}
+
+Each party will know only the distances from each of its nodes to the closest threat. If the party is connected to multiple parties, or if the public network connecting the parties is sufficiently complex, then there will be many possible paths along which the vulnerability could propagate, thus hiding the original source.

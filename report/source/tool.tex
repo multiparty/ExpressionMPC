@@ -1,0 +1,18 @@
+We implemented a python library ``ExpressionMPC'', which allows programs to quickly code segments that execute symbolically during program execution. We provide python classes (called simplifiers) that implement the reductions described in the paper. As well as a VIFF\cite{viff} based evaluator. The evaluator uses VIFF to secret share all the input distances and weights between parties, then interpret the expressions using the generic VIFF operators, the results are opened and shared with the rightful parties only. The users of the library can write their own simplifiers or evaluators and use them in combination with the provided ones. \\
+
+We used operator overloading to accumulate operators into expressions. The simplifiers and evaluators are visitor-pattern like. Code written using this library will not show direct references to MPC constructs or parse-tree manipulations. However, smart use of simplifiers inside the code (in between iterations for example) can help reduce the time needed to process and optimize the symbolic expressions. \\
+
+We have attempted to run our solution on a total network consisting of 24 nodes, 38 edges, and 3 parties. The public network consists of 6 gateways and 7 edges. Our solution required 0.12 to optimize the expression, and 16 seconds to evaluate it. An equivalent program with the use of symbolic optimization took 24 seconds on the same input. We plan on running more extensive benchmarks (larger networks, more parties, on the cloud) soon.
+
+\subsection{Active Security}
+VIFF provides the ability to change the security configuration (through the VIFF Runtime). VIFF will automatically ensure that all parties are following the provided protocol, notice that even if a malicious party attempted to deviate from the protcol in the MPC stage, it can only do so by either attempting to manipulate its shares, or evaluating a different expression (i.e executing a different set of instructions). VIFF already has guarantees for these kinds of behavior. \\
+
+However, although the local stages are put in place only for efficiency benefits, doing the computation in stages differ (slightly) from doing the whole computation in MPC with regards to security guarantees. \\
+
+Notice that our protocol requires each party to provide as inputs to the MPC both the locally-computed gateway distances as well as gateway-pairs weights. A malicious party could provide weights that do not match the gateway distances and their internal network. The part can pick the distances and weights separately for whatever malicious purpose. This can be divided into two cases:
+\begin{enumerate}
+\item The provided weights and distances do not match the party's actual internal network, but they do match some other network(s): this case is equivalent to the part ``lying'' and providing one of the matching networks as input to the equivalent computation done entirely in MPC.
+\item The provided weights and distances are inherently inconsistent and cannot match any network: for example, the weights do not satisfy the triangular inequality. This case cannot arise if the computation was done entirely in MPC, since the party cannot pick the weights. Additional checks must be added to the MPC stage to check consistency of the input. It is unclear what the malicious party may learn in doing this but could not learn by picking consistent inputs.
+\end{enumerate}
+
+

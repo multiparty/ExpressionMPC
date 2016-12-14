@@ -1,0 +1,14 @@
+\subsection{Local Stage - Input}
+In the first stage of the computation, each party will perform the algorithm locally on its private network. We are only interested in computing the distances of the gateways. It may be useful to use a modified version of the algorithm that computes the distances for only the gateways without having to worry about distant nodes that do not contribute. \\
+
+A party's gateways may be connected internally inside its private network. These connection must not be ignored by the MPC stage since they can affect the outcome of the computation. For example, imagine a case where two parties networks are not connected directly. Instead, they are connected to two different gateways of a third party, these gateways are then connected internally by some path in that third party's local network. Failure to provide the MPC stage with information about the connection between these two gateways will cause vulnerabilities in the first two parties to be ``invisible'' to the other party, and blocking them from propagating in their direction. \\
+
+Therefore, each party compute the shortest distance between every pair of gateway nodes. If two gateways are unconnected, the distance is set to be $\infty$. These distances will server as ``weights'' to imaginary edges between gateways in the MPC stage. The actual value of the weights remain unknown as they are secret-shared. This will not reveal the existence (or in-existence) of a path between two gateways, nor will it reveal its length. Thus, no information about the internal topology of any private network is leaked. \\
+
+\subsection{MPC Stage}
+When all parties are done with their local computations, they will enter into a multiparty computation between them. Each party will then secret share (using Shamir secret sharing \cite{shamirsharing}) the distances of each gateway and the ``weights'' between every pair of gateways. \\
+
+Each party will run Algorithm \ref{algo} symbolically, accumulating min and addition operators into symbolic expressions. The expressions are optimized as will be discussed in the next section. When the expressions are ready, each party will evaluate them using the shares of the inputs it possess. The result of each expression is then shared with the party that owns the the expression's respective node. Thus, only the party to which a gateway node belongs to will learn the distance of that node to a vulnerability. 
+
+\subsection{Local Stage - Output}
+Finally each party will proceed onto a new local stage. The output distances of each gateway learned in the MPC stage is plugged into the result of the first local stage. Each party will compute algorithm \ref{algo} locally. Thus, propagating the distances to local vulnerabilities as well as vulnerabilities learned in the MPC stage (external vulnerabilities).
