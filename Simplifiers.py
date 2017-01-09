@@ -39,13 +39,17 @@ class MinToTopSimplifier(BaseSimplifier):
         allmin = filter(lambda x: isinstance(x, MinExp), operands)
         nomin = filter(lambda x: not isinstance(x, MinExp), operands)
 
-        return MinExp(*reduce(lambda x,y: x+y, [m.operands for m in allmin], nomin), key=exp.key)
+        return MinExp(reduce(lambda x,y: x+y, [m.operands for m in allmin], nomin), key=exp.key)
 
 class RemoveNestedAddSimplifier(BaseSimplifier):
     def __init__(self):
         pass
 
     def simplifyAddExp(self, exp, operands):
+        for i in range(len(operands)):
+            if isinstance(operands[i], int):
+                operands[i] = AtomicIntExp(operands[i])
+                
         alladd = filter(lambda x: isinstance(x, AddExp), operands)
         noadd = filter(lambda x: not isinstance(x, AddExp), operands)
 
@@ -58,11 +62,13 @@ class RemoveNestedAddSimplifier(BaseSimplifier):
         allint = filter(lambda x: isinstance(x, AtomicIntExp), noadd)
         noint = filter(lambda x: not isinstance(x, AtomicIntExp), noadd)
 
-        noint.append(AtomicIntExp(sum([e.value() for e in allint])))
-        return AddExp(*noint)
+        if len(allint) > 0:
+            noint.append(AtomicIntExp(sum([e.value() for e in allint])))
+            
+        return AddExp(noint)
 
     def simplifyMinExp(self, exp, operands):
-        return MinExp(*operands, key=exp.key)
+        return MinExp(operands, key=exp.key)
 
 # This will only work desirably on expressions simplified
 # By both MinToTopSimplifier and RemoveNestedAddSimplifier (in order).
@@ -79,7 +85,7 @@ class RemoveRedundantMinSimplifier(BaseSimplifier):
                 elif i != j and self.lt(operands[i], operands[j]) and j in uniques:
                     uniques.remove(j)
 
-        return MinExp(*[operands[i] for i in range(len(operands)) if i in uniques], key=exp.key)
+        return MinExp([operands[i] for i in range(len(operands)) if i in uniques], key=exp.key)
 
     def eq(self, o1, o2):
         if not isinstance(o1, Exp) or not isinstance(o2, Exp):
@@ -156,111 +162,4 @@ class AgressiveRedundantMinSimplifier(BaseSimplifier):
         pass
 
     def simplifyMinExp(self, exp, operands):
-        # Construct Partial Expression Mapping to Mapping
-        mapping = {}
-        for o in operands:
-            if isinstance(o, AddExp):
-                tally_str = ""
-                for i in range(len(o.operands)):
-                    if i == 0:
-                        tally_str = str(o.operands[i])
-                    else:
-                        tally_str = tally_str + "+" + str(o.operands[i])
-                    m = mapping.get(tally_str, None)
-                    if m is None:
-                        m = []
-                        mapping[tally_str] = m
-
-                    m.append((o, o.operands[i+1:]))
-            else:
-                m = mapping.get(str(o), None)
-                if m is None:
-                    m = []
-                    mapping[str(o)] = m
-                m.append((o, []))
-
-        # Attempt to Simplify
-        simplified_ops = []
-        duplicated_ops = {} # Saves duplicates
-        for o in operands:
-            ops = o.operands
-            visited = { o }
-            good = True
-
-            if not isinstance(o, AddExp):
-                ops = [ o ]
-
-            ops_str = [ str(op) for op in ops ]
-            for l in range(len(ops)):
-                i = len(ops) - l
-                for other_o, remain_ops in mapping["+".join(ops_str[:i])]:
-                    if other_o in visited:
-                        continue
-
-                    visited.add(other_o)
-                    cmpr = self.ops_leq(remain_ops, ops[i:])
-                    if cmpr is None:
-                        good = False
-                        if duplicated_ops.get(str(o), "") == "-": break
-                        duplicated_ops[str(o)] = o
-                        break
-                    elif cmpr:
-                        duplicated_ops[str(o)] = "-"
-                        good = False
-                        break
-            if good:
-                simplified_ops.append(o)
-
-        for d in duplicated_ops:
-            if duplicated_ops[d] == "-": continue
-            simplified_ops.append(duplicated_ops[d])
-        return MinExp(*simplified_ops, key=exp.key)
-
-    """
-    COMPARE THE OPERANDS ops1 AND ops2
-    IF ops1 == ops2 RETURNS None
-    IF ops1 < ops2 RETURNS True
-    ELSE RETURNS False (ops1 > ops2 OR undetermined)
-    """
-    def ops_leq(self, ops1, ops2):
-        if len(ops1) == 0 and len(ops2) == 0: # Takes care of dups
-            return None
-        elif len(ops1) == 0: # Takes care of obvious (expression is a proper prefixes)
-            return True
-        elif len(ops2) == 0:
-            return False
-
-        ops1_set = set()
-        ops2_set = set()
-        ops1_int = 0
-        ops2_int = 0
-
-        for o in ops1:
-            if isinstance(o, AtomicIntExp): ops1_int += o.value()
-            else: ops1_set.add(str(o))
-        for o in ops2:
-            if isinstance(o, AtomicIntExp): ops2_int += o.value()
-            else: ops2_set.add(str(o))
-
-        ops1 = filter(lambda x: not isinstance(x, AtomicIntExp) and not x in ops1_set, ops1)
-        ops2 = filter(lambda x: not isinstance(x, AtomicIntExp) and not x in ops1_set, ops2)
-
-        if len(ops1) > 0 and len(ops2) > 0:
-            return False
-
-        diff = ops1_int - ops2_int
-        if len(ops1) == 0 and len(ops2) == 0 and diff == 0:
-            return False
-
-        if len(ops1) == 0 and len(ops2) == 0:
-            if diff < 0:
-                return True
-            else:
-                return False
-
-        if len(ops1) == 0 and diff < 0:
-            return True
-        if len(ops1) == 0 and diff > 0:
-            return len(ops2) - diff >= 0
-
-        return False
+        return MinExp(set(operands))

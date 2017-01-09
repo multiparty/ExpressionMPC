@@ -8,6 +8,31 @@ def mapNodesToEdges(edges):
         mapping[n2] = mapping.get(n2, []) + [(n1, w)]
 
     return mapping
+    
+def mapNodesToEdgesWithWeights(edges, nodes):
+    def process(s):
+        return s[1:s.index("_")]
+        
+    mapping = {}
+    for n1, n2, w in edges:
+        if process(n1) == process(n2):
+            continue
+            
+        mapping[n1] = mapping.get(n1, []) + [(n2, 1)]
+        mapping[n2] = mapping.get(n2, []) + [(n1, 1)]
+        
+    for n1 in nodes:
+        for n2 in nodes:
+            if n1 == n2:
+                continue
+                
+            if process(n1) == process(n2):
+                w = n1 + ":" + n2
+                if n1 > n2:
+                    w = n2 + ":" + n1
+                mapping[n1] = mapping.get(n1, []) + [(n2, V(w))]
+
+    return mapping
 
 
 def printGraph(nodes, edges, values, iteration=1):
@@ -41,6 +66,13 @@ def printGraphs(graphes):
 
 
 def readGraph(definition):
+    def fixW(w1, w2):
+        w1 = w1.strip()
+        w2 = w2.strip()
+        if w1 < w2:
+            return w1+":"+w2
+        return w2+":"+w1
+    
     definition = definition.strip()
     definition = definition.split("\n")
     for i in range(len(definition)):
@@ -79,14 +111,14 @@ def readGraph(definition):
         if w == "":
             w = 1
         elif w == "inf":
-            values_map[edge[0].strip()+":"+edge[1].strip()] = float("inf")
-            w = V(edge[0].strip()+":"+edge[1].strip())
+            values_map[fixW(edge[0], edge[1])] = float("inf")
+            w = V(fixW(edge[0], edge[1]))
         elif w == "X":
-            values_map[edge[0].strip()+":"+edge[1].strip()] = w
-            w = V(edge[0].strip()+":"+edge[1].strip())
+            values_map[fixW(edge[0], edge[1])] = w
+            w = V(fixW(edge[0], edge[1]))
         else:
-            values_map[edge[0].strip()+":"+edge[1].strip()] = int(w)
-            w = V(edge[0].strip()+":"+edge[1].strip())
+            values_map[fixW(edge[0], edge[1])] = int(w)
+            w = V(fixW(edge[0], edge[1]))
 
         edges.append((edge[0].strip(), edge[1].strip(), w))
 
