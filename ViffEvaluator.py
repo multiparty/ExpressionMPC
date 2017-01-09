@@ -20,7 +20,8 @@ import sys
 
 
 def smin(x, y):
-    m = (x <= y)*x + (y <= x)*y
+    #m = (x <= y)*x + (y <= x)*y
+    m = y + (x <= y)*(x-y)
     return m
 
 class ViffEvaluator(BaseEvaluator):
