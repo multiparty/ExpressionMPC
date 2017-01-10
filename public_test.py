@@ -1,21 +1,25 @@
 from Expressions import *
 from RandomGraphGen import *
 from GraphIO import *
-from Simplifiers import *
+from Simplifiers import AgressiveRedundantMinSimplifier
 from Evaluators import BaseEvaluator
-from ViffEvaluator import ViffEvaluator
 
-from time import clock as time
 import sys
 
-# Initialize Graph
 time_ = time()
 
-ID = sys.argv[2]
-ID = int(ID[ID.index("-")+1:ID.index(".")]) - 1
-ID = str(ID)
-nodes, edges_list, input_map = readGraph(open('mpc_graph/2MPC/input'+ID+'.txt', 'r').read())
+# Read the graph
+with open(sys.argv[1], 'r') as f:
+    nodes, edges_list, input_map = readGraphs(f.read())[0]
 edges_map = mapNodesToEdges(edges_list)
+
+"""
+# Random Graph
+nodes, edges_list = genGraph(6, 6, 10, 11, 3)
+edges_list = genWeights(edges_list)
+edges_map = mapNodesToEdges(edges_list)
+input_map = genValues(nodes) # Actual Input Values
+"""
 
 # Simplifiers
 simplifier = AgressiveRedundantMinSimplifier()
@@ -42,10 +46,10 @@ for iteration in range(len(nodes)): # """ len(nodes) """ Graph Distance Algorith
 time2 = time()
 print "Algorithm Done... " + str(time2 - time1)
 
-# Evaluate (Securely)
+# Evaluate (Publicly)
 time1 = time()
-value_map = { n: (int(n[1:n.index("_")])+1, value_map[n]) for n in value_map }
-value_map = ViffEvaluator.evaluate(input_map, value_map)
+evaluator = BaseEvaluator(input_map)
+value_map = {n : value_map[n].evaluate(evaluator) for n in value_map}
 
 time2 = time()
 print "Evaluated!! " + str(time2 - time1)
@@ -55,3 +59,4 @@ print ""
 
 # Print the graph
 printGraph(nodes, edges_list, value_map)
+

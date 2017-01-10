@@ -6,7 +6,7 @@ class Exp(object):
     # Constructor
     def __init__(self, operands, cmp=None):
         self.operands = [ self.cast(e) for e in operands ]
-        if cmp is not none: self.operands.sort(cmp=cmp)
+        if cmp is not None: self.operands.sort(cmp=cmp)
                 
     def cast(self, e):
         if isinstance(e, int) or (isinstance(e, float) and e == float('inf')): return AtomicIntExp(e)
@@ -34,7 +34,7 @@ class Exp(object):
 
     # Overload the + operator.
     def __radd__(self, e2):
-        return AddExp([self, e2])
+        return AddExp([e2, self])
     
 # Constant Integer
 class AtomicIntExp(Exp):
@@ -56,23 +56,19 @@ class AtomicIntExp(Exp):
      # Overload the + operator.
     def __add__(self, e2):
         if isinstance(e2, int) or (isinstance(e2, float) and e2 == float('inf')): 
-            self.operands[0] = self.operands[0] + e2
-            return self
+            return AtomicIntExp(self.operands[0] + e2)
         elif isinstance(e2, AtomicIntExp):
-            self.operands[0] = self.operands[0] + e2.operands[0]
-            return self
+            return AtomicIntExp(self.operands[0] + e2.operands[0])
             
         return super(AtomicIntExp, self).__add__(e2)
 
     # Overload the + operator.
     def __radd__(self, e2):
         if isinstance(e2, int) or (isinstance(e2, float) and e2 == float('inf')): 
-            self.operands[0] = self.operands[0] + e2
-            return self
+            return AtomicIntExp(e2 + self.operands[0])
         elif isinstance(e2, AtomicIntExp):
-            self.operands[0] = self.operands[0] + e2.operands[0]
-            return self
-            
+            return AtomicIntExp(e2.operands[0] + self.operands[0])
+                        
         return super(AtomicIntExp, self).__radd__(e2)
 
 # Variable (Unknown)
@@ -101,7 +97,7 @@ class AddExp(Exp):
     # Use to sort operands
     addCompare = None
     
-    def __init__(self, operands):                   
+    def __init__(self, operands):    
         super(AddExp, self).__init__(operands, cmp=AddExp.addCompare)
 
     def __str__(self): # Inherited
@@ -115,29 +111,32 @@ class AddExp(Exp):
 
     # Overload the + operator.
     def __add__(self, e2):
-        self.simpleAdd(e2)
-        return self
+        return self.simpleAdd(e2)
 
     # Overload the + operator.
     def __radd__(self, e2):
-        self.simpleAdd(e2)
-        return self
+        return self.simpleAdd(e2)
 
     # Add into self keeping operands sorted
     def simpleAdd(self, e2):
-        e2 = cast(e2)
-        if isinstance(e2, AtomicIntExp): # Add to existing AtomicIntExp argument
-            for i in range(len(self.operands)):
-                if isinstance(self.operands[i], AtomicIntExp):
-                    self.operands[i].operands[0] += e2.operands[0]
-                    return
+        e2 = self.cast(e2)
+        operands_copy = list(self.operands)
         
+        # Add to existing AtomicIntExp argument
+        if isinstance(e2, AtomicIntExp): 
+            for i in range(len(operands_copy)):
+                if isinstance(operands_copy[i], AtomicIntExp):
+                    operands_copy[i] = AtomicIntExp(operands_copy[i].value() + e2.value())
+                    return AddExp(operands_copy)
+
         # Insert into position (to keep sorted)
-        for i in range(len(self.operands)):
-            if AddExp.addCompare(e2, self.operands[i]) > 0:
-                self.operands.insert(i, e2)
-                return
-        self.operands.append(e2)
+        for i in range(len(operands_copy)):
+            if AddExp.addCompare(e2, operands_copy[i]) > 0:
+                operands_copy.insert(i, e2)
+                return AddExp(operands_copy)
+                
+        operands_copy.append(e2)
+        return AddExp(operands_copy)
 
 # Min between n sub expressions.
 class MinExp(Exp):

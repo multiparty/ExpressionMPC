@@ -3,9 +3,11 @@ from RandomGraphGen import *
 from GraphIO import *
 from Simplifiers import *
 from Evaluators import BaseEvaluator
+from Utils import *
 
 from time import clock as time
 import sys
+
 
 def compare(e1, e2):
     if isinstance(e1, AtomicIntExp) and isinstance(e2, AtomicIntExp): return e1.value() - e2.value()
@@ -26,15 +28,15 @@ def compare(e1, e2):
 time_ = time()
 
 # Random Graph
-nodes, edges_list = genGraph(5,5,5,5,5,2)
+parties = 5
+nodes, edges_list = genGraph(100, 100, 400, 400, parties)
 edges_list = genWeights(edges_list)
 edges_map = mapNodesToEdgesWithWeights(edges_list, nodes)
 input_map = genValues(nodes) # Actual Input Values
-print nodes
 
 # Simplifiers
 simplifier = AgressiveRedundantMinSimplifier()
-AddExp.simpleAddLam = RemoveNestedAddSimplifier().simplifyAddExp
+AddExp.addCompare = staticmethod(compare)
 
 time2 = time()
 print "Initialized... " + str(time2 - time_)
@@ -42,12 +44,14 @@ print "Initialized... " + str(time2 - time_)
 # Initial "Symbolic" Values
 time1 = time()
 value_map = {n: min([V(n)]) for n in nodes} # V -> FreeVarExp
-for iteration in range(2): # """ len(nodes) """ Graph Distance Algorithm
+for iteration in range(min(len(nodes), 2*parties)): # """ len(nodes) """ Graph Distance Algorithm
+    print iteration
+    #pprint_min(value_map[nodes[0]])
+    
     tmp = {}
     for n in nodes:
         n_expression = value_map[n].operands
         for nb, w in edges_map[n]:
-            print w
             n_expression = n_expression + [ o + w for o in value_map[nb].operands ]
         tmp[n] = min(n_expression)
 
@@ -57,7 +61,7 @@ for iteration in range(2): # """ len(nodes) """ Graph Distance Algorithm
 time2 = time()
 print "Algorithm Done... " + str(time2 - time1)
 
-nice_print(value_map[nodes[0]])
+#pprint_min(value_map[nodes[0]])
 
 """
 # Evaluate (Publicly)

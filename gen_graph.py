@@ -1,8 +1,6 @@
 from Expressions import *
 from RandomGraphGen import *
 from GraphIO import *
-from Simplifiers import MinToTopSimplifier
-from Evaluators import BaseEvaluator
 
 # Initialize Graph
 nodes, edges_list = genGraph(7, 7, 10, 15, 15, 3)
