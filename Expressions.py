@@ -4,15 +4,14 @@ class Exp(object):
     OPERANDS_TYPES = []
 
     # Constructor
-    def __init__(self, operands):
-        self.operands = []
-        for o in operands:
-            if isinstance(o, int) or (isinstance(o, float) and o == float('inf')):
-                self.operands.append(AtomicIntExp(o))
-            elif isinstance(o, Exp):
-                self.operands.append(o)
-            else:
-                raise ValueError("Unknown Type: " + str(type(o)))
+    def __init__(self, operands, cmp=None):
+        self.operands = [ self.cast(e) for e in operands ]
+        if cmp is not none: self.operands.sort(cmp=cmp)
+                
+    def cast(self, e):
+        if isinstance(e, int) or (isinstance(e, float) and e == float('inf')): return AtomicIntExp(e)
+        elif isinstance(e, Exp): return e
+        else: raise ValueError("Unknown Type: " + str(type(e)))
 
     def simplify(self, simplifier):
         pass
@@ -37,36 +36,6 @@ class Exp(object):
     def __radd__(self, e2):
         return AddExp([self, e2])
     
-    @classmethod
-    def compare(clazz, e1, e2):
-        if isinstance(e1, int):
-            e1 = AtomicIntExp(e1)
-        if isinstance(e2, int):
-            e2 = AtomicIntExp(e2)
-            
-        if isinstance(e1, AtomicIntExp) and isinstance(e2, AtomicIntExp):
-            return e1.value() - e2.value()
-        
-        if isinstance(e1, AtomicIntExp):
-            return 1
-        if isinstance(e2, AtomicIntExp):
-            return -1
-
-        e1 = str(e1)
-        e2 = str(e2)
-        
-        if ":" in e1 and not ":" in e2:
-            return 1
-        if not ":" in e1 and ":" in e2:
-            return -1
-        
-        if e1 < e2:
-            return -1
-        if e1 == e2:
-            return 0
-        return 1
-    
-
 # Constant Integer
 class AtomicIntExp(Exp):
     def __init__(self, value):
@@ -83,6 +52,28 @@ class AtomicIntExp(Exp):
 
     def simplify(self, simplifier):
         return simplifier.simplifyAtomicIntExp(self, self.operands)
+        
+     # Overload the + operator.
+    def __add__(self, e2):
+        if isinstance(e2, int) or (isinstance(e2, float) and e2 == float('inf')): 
+            self.operands[0] = self.operands[0] + e2
+            return self
+        elif isinstance(e2, AtomicIntExp):
+            self.operands[0] = self.operands[0] + e2.operands[0]
+            return self
+            
+        return super(AtomicIntExp, self).__add__(e2)
+
+    # Overload the + operator.
+    def __radd__(self, e2):
+        if isinstance(e2, int) or (isinstance(e2, float) and e2 == float('inf')): 
+            self.operands[0] = self.operands[0] + e2
+            return self
+        elif isinstance(e2, AtomicIntExp):
+            self.operands[0] = self.operands[0] + e2.operands[0]
+            return self
+            
+        return super(AtomicIntExp, self).__radd__(e2)
 
 # Variable (Unknown)
 class FreeVarExp(Exp):
@@ -90,6 +81,9 @@ class FreeVarExp(Exp):
         self.operands = [str(name)]
 
     def __str__(self): # Inherited
+        return self.operands[0]
+        
+    def name(self):
         return self.operands[0]
 
     def evaluate(self, evaluator): # Inherited
@@ -104,13 +98,11 @@ def V(name):
 
 # Addition between n sub expressions.
 class AddExp(Exp):
-    simpleAddLam = (lambda x, ops: AddExp(ops))
-    def __init__(self, operands):
-        if not isinstance(operands, list):
-            operands = list(operands) 
-                   
-        operands.sort(cmp=Exp.compare)
-        super(AddExp, self).__init__(operands)
+    # Use to sort operands
+    addCompare = None
+    
+    def __init__(self, operands):                   
+        super(AddExp, self).__init__(operands, cmp=AddExp.addCompare)
 
     def __str__(self): # Inherited
         return "(" + " + ".join([str(o) for o in self.operands]) + ")" # TODO remove space from +
@@ -123,40 +115,42 @@ class AddExp(Exp):
 
     # Overload the + operator.
     def __add__(self, e2):
-        return self.simpleAdd(e2)
+        self.simpleAdd(e2)
+        return self
 
     # Overload the + operator.
     def __radd__(self, e2):
-        return self.simpleAdd(e2)
+        self.simpleAdd(e2)
+        return self
 
+    # Add into self keeping operands sorted
     def simpleAdd(self, e2):
-        if isinstance(e2, int) or isinstance(e2, float):
-            e2 = AtomicIntExp(e2)
-
-        if isinstance(e2, AddExp):
-            return AddExp.simpleAddLam(self, self.operands + e2.operands)
-        else:
-            return AddExp.simpleAddLam(self, self.operands + [e2])
+        e2 = cast(e2)
+        if isinstance(e2, AtomicIntExp): # Add to existing AtomicIntExp argument
+            for i in range(len(self.operands)):
+                if isinstance(self.operands[i], AtomicIntExp):
+                    self.operands[i].operands[0] += e2.operands[0]
+                    return
+        
+        # Insert into position (to keep sorted)
+        for i in range(len(self.operands)):
+            if AddExp.addCompare(e2, self.operands[i]) > 0:
+                self.operands.insert(i, e2)
+                return
+        self.operands.append(e2)
 
 # Min between n sub expressions.
 class MinExp(Exp):
+    # Use to sort operands
+    minCompare = None
+    
     def __init__(self, operands, **kwargs):
-        super(MinExp, self).__init__(operands)
+        super(MinExp, self).__init__(operands, cmp=MinExp.minCompare)
         self.key = kwargs.get("key", None) # Custom Comparator if needed.
 
     def __str__(self): # Inherited
-        str_ops = []
-        for o in self.operands:
-            str_o = str(o)
-            if not str_o.startswith("("):
-                str_o = "("+str_o+")"
-            str_ops.append(str_o)
-        str_ops.sort()
-
-        result = "min(" + ",".join(str_ops)
-        if self.key is not None:
-            result = ", key="+str(self.key)
-
+        result = "min(" + ",".join( [ str(o) for o in self.operands ] )
+        if self.key is not None: result = result + ", key="+str(self.key)
         return result + ")"
 
     def addToall(self, element):

@@ -7,34 +7,20 @@ from Evaluators import BaseEvaluator
 from time import clock as time
 import sys
 
+def compare(e1, e2):
+    if isinstance(e1, AtomicIntExp) and isinstance(e2, AtomicIntExp): return e1.value() - e2.value()
+    if isinstance(e1, AtomicIntExp): return 1
+    if isinstance(e2, AtomicIntExp): return -1
 
-def print_map(e):
-    print "MAP"
-    for k in e:
-        print str(k) + " : " + str(e[k])
-    print ""
+    e1, e2 = str(e1), str(e2)
 
-def nice_print(e):
-    ops = e.operands
-    
-    def compare(o1, o2):
-        o1 = o1.operands
-        o2 = o2.operands
-        
-        for i in range(min(len(o1), len(o2))):
-            s1, s2 = str(o1[i]), str(o2[i])
-            if s1 < s2:
-                return -1
-            if s2 < s1:
-                return 1
-        
-        return len(o1) - len(o2)
-        
-    print "MIN("
-    for o in sorted(ops, cmp=compare):
-        print "\t"+str(o)
-    print ")"
-    print  ""
+    if ":" in e1 and not ":" in e2: return 1
+    if not ":" in e1 and ":" in e2: return -1
+
+    if e1 < e2: return -1
+    if e1 == e2: return 0
+    return 1
+
 
 # Initialize Graph
 time_ = time()
