@@ -8,24 +8,24 @@ def mapNodesToEdges(edges):
         mapping[n2] = mapping.get(n2, []) + [(n1, w)]
 
     return mapping
-    
+
 def mapNodesToEdgesWithWeights(edges, nodes):
     def process(s):
         return s[1:s.index("_")]
-        
+
     mapping = {}
     for n1, n2, w in edges:
         if process(n1) == process(n2):
             continue
-            
+
         mapping[n1] = mapping.get(n1, []) + [(n2, 1)]
         mapping[n2] = mapping.get(n2, []) + [(n1, 1)]
-        
+
     for n1 in nodes:
         for n2 in nodes:
             if n1 == n2:
                 continue
-                
+
             if process(n1) == process(n2):
                 w = n1 + ":" + n2
                 if n1 > n2:
@@ -72,7 +72,7 @@ def readGraph(definition):
         if w1 < w2:
             return w1+":"+w2
         return w2+":"+w1
-    
+
     definition = definition.strip()
     definition = definition.split("\n")
     for i in range(len(definition)):

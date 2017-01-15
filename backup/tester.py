@@ -9,19 +9,7 @@ from time import clock as time
 import sys
 
 
-def compare(e1, e2):
-    if isinstance(e1, AtomicIntExp) and isinstance(e2, AtomicIntExp): return e1.value() - e2.value()
-    if isinstance(e1, AtomicIntExp): return 1
-    if isinstance(e2, AtomicIntExp): return -1
 
-    e1, e2 = str(e1), str(e2)
-
-    if ":" in e1 and not ":" in e2: return 1
-    if not ":" in e1 and ":" in e2: return -1
-
-    if e1 < e2: return -1
-    if e1 == e2: return 0
-    return 1
 
 
 # Initialize Graph
@@ -47,7 +35,7 @@ value_map = {n: min([V(n)]) for n in nodes} # V -> FreeVarExp
 for iteration in range(min(len(nodes), 2*parties)): # """ len(nodes) """ Graph Distance Algorithm
     print iteration
     #pprint_min(value_map[nodes[0]])
-    
+
     tmp = {}
     for n in nodes:
         n_expression = value_map[n].operands

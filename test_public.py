@@ -59,4 +59,3 @@ print ""
 
 # Print the graph
 printGraph(nodes, edges_list, value_map)
-
