@@ -137,6 +137,8 @@ class ViffEvaluator(BaseEvaluator):
 
     def results_ready(self, results):
         try:
+            print self.keys
+            
             self.results = {}
             for i in range(len(results)):
                 self.results[self.keys[i]] = results[i]
@@ -146,6 +148,7 @@ class ViffEvaluator(BaseEvaluator):
                 party, _ = self.expressions[key]
                 if party == self.id:
                     reveal.add(key)
+            print reveal
                 
             self.results = { k: self.results[k] for k in reveal }
             for k in self.results:
