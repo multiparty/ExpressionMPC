@@ -138,7 +138,7 @@ class ViffEvaluator(BaseEvaluator):
     def results_ready(self, results):
         try:
             print self.keys
-            
+            print len(results)
             self.results = {}
             for i in range(len(results)):
                 self.results[self.keys[i]] = results[i]
