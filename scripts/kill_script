@@ -1,4 +1,4 @@
 #!/bin/bash
-kill $(ps aux | grep '[p]ython viff_test.py' | awk '{print $2}')
+kill $(ps aux | grep '[p]ython test_viff.py' | awk '{print $2}')
 kill $(ps aux | grep '[p]ython viff_optimized.py' | awk '{print $2}')
 kill $(ps aux | grep '[p]ython viff_pure.py' | awk '{print $2}')

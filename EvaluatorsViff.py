@@ -18,6 +18,7 @@ import time
 import os
 import sys
 
+INFINITY=100000
 
 def smin(x, y):
     #m = (x <= y)*x + (y <= x)*y
@@ -26,7 +27,7 @@ def smin(x, y):
 
 class ViffEvaluator(BaseEvaluator):
     @classmethod
-    def evaluate(clazz, input_map, expressions, config_file=None, options=None):
+    def evaluate(clazz, input_map, expressions, weight_expressions, config_file=None, options=None):
         if config_file is None and options is None:
             parser = OptionParser()
             parser.set_defaults(modulus=2**65)
@@ -36,16 +37,7 @@ class ViffEvaluator(BaseEvaluator):
             config_file = args[0]
 
         evaluator = ViffEvaluator(input_map, config_file, options=options)
-        if isinstance(expressions, dict): # If expressions is a dict, return results as dict.
-            keys, exps = [], []
-            for key in expressions:
-                keys.append(key)
-                exps.append(expressions[key])
-
-            exps = evaluator.evaluate_all(exps)
-            return {keys[i]: exps[i] for i in range(len(exps))}
-
-        return evaluator.evaluate_all(expressions)
+        return evaluator.evaluate_all(expressions, weight_expressions)
 
     def __init__(self, input_map, config_file, options=None):
         self.config_file = config_file
@@ -60,8 +52,9 @@ class ViffEvaluator(BaseEvaluator):
         runtime_class = make_runtime_class(mixins=[ComparisonToft07Mixin])
         self.pre_runtime = create_runtime(self.id, self.parties, 1, self.options, runtime_class)
 
-    def evaluate_all(self, expressions):
+    def evaluate_all(self, expressions, weight_expressions):
         self.expressions = expressions
+        self.weight_expressions = weight_expressions
         self.pre_runtime.addCallback(self.begin_MPC)
 
         # Start the Twisted event loop.
@@ -90,38 +83,77 @@ class ViffEvaluator(BaseEvaluator):
     """
 
     def begin_MPC(self, runtime):
-        self.runtime = runtime
-        self.share() # Share inputs
+        try:
+            self.runtime = runtime
+            self.share() # Share inputs
 
-        # Evaluate
-        evaluated = []
-        for key, exp in self.expressions:
-            evaluated.append((key, exp.evaluate(self)))
+            # Evaluate
+            for i in range(len(self.parties_list) - 2):
+                print "COMB"
+                tmp = {}
+                i = 0
+                for key in self.expressions:
+                    print "exp " + str(i)
+                    i = i + 1
+                    party, exp = self.expressions[key]
+                    tmp[key] = exp.evaluate(self)
+                self.shares.update(tmp)
+                
+                tmp = {}
+                i = 0
+                for key in self.weight_expressions:
+                    print "w" + str(i)
+                    i = i + 1
+                    exp = self.weight_expressions[key]
+                    tmp[key] = exp.evaluate(self)
+                self.shares.update(tmp)
+            
+            evaluated = {}
+            for key in self.expressions:
+                print "."
+                party, exp = self.expressions[key]
+                evaluated[key] = exp.evaluate(self)
 
-        # Open
-        gathered = []
-        self.results = []
-        for key, ev in evaluated:
-            share = self.runtime.open(ev, receivers=[key])
-            if share is not None:
-                gathered.append(share)
-                self.results.append("?")
-            else:
-                self.results.append("X")
+            # Open
+            gathered = []
+            self.results = []
+            self.keys = []
+            for key in evaluated:
+                party, ev = evaluated[key]
+                share = self.runtime.open(ev, receivers=[party])
+                if share is not None:
+                    gathered.append(share)
+                    self.open.append("?")
+                    self.key.append(key)
+                else:
+                    self.open.append("X")
+                    self.key.append(key)
 
-        gathered = gather_shares(gathered)
-        gathered.addCallback(self.results_ready)
+            gathered = gather_shares(gathered)
+            gathered.addCallback(self.results_ready)
 
-        # Shutdown
-        self.runtime.schedule_callback(gathered, lambda _: self.runtime.shutdown())
+            # Shutdown
+            self.runtime.schedule_callback(gathered, lambda _: self.runtime.shutdown())
+        except:
+            import traceback
+            traceback.print_exc()
 
     def results_ready(self, results):
-        i = 0
-        for j in range(len(results)):
-            while self.results[i] != "?":
-                i = i + 1
-            self.results[i] = int(results[j])
-
+        self.results = {}
+        for i in range(len(results)):
+            self.results[self.key] = results[i]
+         
+        reveal = set()
+        for key in self.expressions:
+            party, _ = self.expressions[key]
+            if party == self.id:
+                reveal.add(key)
+            
+        self.results = { k: self.results[k] for k in reveal }
+        for k in self.results:
+            val = self.results[k]
+            if val >= INFINITY: self.results[k] = float("inf")
+        
     """
     VIFF RELATED FUNCTIONS
     """
@@ -132,7 +164,7 @@ class ViffEvaluator(BaseEvaluator):
         self.party_inputs = {p: [] for p in self.parties}
         for node_name in self.input_map:
             party = int(node_name[1:node_name.index("_")])
-            self.party_inputs.get(party+1).append(node_name)
+            self.party_inputs.get(party).append(node_name)
 
         # Sort the node names consistently in each party
         self.share_rounds = 0
