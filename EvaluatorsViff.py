@@ -88,7 +88,7 @@ class ViffEvaluator(BaseEvaluator):
             self.share() # Share inputs
 
             # Evaluate
-            for i in range(len(self.parties_list) - 2):
+            for i in range(len(self.parties_list) - 1):
                 print "COMB"
                 tmp = {}
                 i = 0
