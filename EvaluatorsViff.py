@@ -118,13 +118,12 @@ class ViffEvaluator(BaseEvaluator):
             gathered = []
             self.results = []
             self.keys = []
-            for key in evaluated:
-                self.keys.append(key)
-                
+            for key in evaluated:                
                 party, ev = evaluated[key]
                 share = self.runtime.open(ev, receivers=[party])
                 if share is not None:
                     gathered.append(share)
+                    self.keys.append(key)
 
             gathered = gather_shares(gathered)
             gathered.addCallback(self.results_ready)
@@ -137,8 +136,6 @@ class ViffEvaluator(BaseEvaluator):
 
     def results_ready(self, results):
         try:
-            print self.keys
-            print len(results)
             self.results = {}
             for i in range(len(results)):
                 self.results[self.keys[i]] = results[i]
