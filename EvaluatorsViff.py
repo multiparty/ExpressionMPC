@@ -112,22 +112,19 @@ class ViffEvaluator(BaseEvaluator):
             for key in self.expressions:
                 print "."
                 party, exp = self.expressions[key]
-                evaluated[key] = exp.evaluate(self)
+                evaluated[key] = (party, exp.evaluate(self))
 
             # Open
             gathered = []
             self.results = []
             self.keys = []
             for key in evaluated:
+                self.keys.append(key)
+                
                 party, ev = evaluated[key]
                 share = self.runtime.open(ev, receivers=[party])
                 if share is not None:
                     gathered.append(share)
-                    self.open.append("?")
-                    self.key.append(key)
-                else:
-                    self.open.append("X")
-                    self.key.append(key)
 
             gathered = gather_shares(gathered)
             gathered.addCallback(self.results_ready)
@@ -139,20 +136,25 @@ class ViffEvaluator(BaseEvaluator):
             traceback.print_exc()
 
     def results_ready(self, results):
-        self.results = {}
-        for i in range(len(results)):
-            self.results[self.key] = results[i]
-         
-        reveal = set()
-        for key in self.expressions:
-            party, _ = self.expressions[key]
-            if party == self.id:
-                reveal.add(key)
-            
-        self.results = { k: self.results[k] for k in reveal }
-        for k in self.results:
-            val = self.results[k]
-            if val >= INFINITY: self.results[k] = float("inf")
+        try:
+            self.results = {}
+            for i in range(len(results)):
+                self.results[self.keys[i]] = results[i]
+             
+            reveal = set()
+            for key in self.expressions:
+                party, _ = self.expressions[key]
+                if party == self.id:
+                    reveal.add(key)
+                
+            self.results = { k: self.results[k] for k in reveal }
+            for k in self.results:
+                val = self.results[k]
+                if val >= INFINITY: self.results[k] = float("inf")
+        except:
+            import traceback
+            traceback.print_exc()
+
         
     """
     VIFF RELATED FUNCTIONS
