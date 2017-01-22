@@ -30,7 +30,7 @@ INITIALIZATION
 """
 time_ = time()
 
-directory = "tests/small"
+directory = "tests/large"
 ID = sys.argv[2]
 ID = int(ID[ID.index("-")+1:ID.index(".")])
 ID = str(ID)

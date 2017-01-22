@@ -109,8 +109,10 @@ class ViffEvaluator(BaseEvaluator):
                 self.shares.update(tmp)
             
             evaluated = {}
+            i = 0
             for key in self.expressions:
-                print "."
+                print "." + str(i)
+                i = i + 1
                 party, exp = self.expressions[key]
                 evaluated[key] = (party, exp.evaluate(self))
 
@@ -145,7 +147,6 @@ class ViffEvaluator(BaseEvaluator):
                 party, _ = self.expressions[key]
                 if party == self.id:
                     reveal.add(key)
-            print reveal
                 
             self.results = { k: self.results[k] for k in reveal }
             for k in self.results:
