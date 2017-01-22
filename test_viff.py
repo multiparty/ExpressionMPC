@@ -8,6 +8,8 @@ from collections import deque
 from time import clock as time
 import sys
 
+sys.setrecursionlimit(10000)
+
 def compare(e1, e2):
     if isinstance(e1, AtomicIntExp) and isinstance(e2, AtomicIntExp): return e1.value() - e2.value()
     if isinstance(e1, AtomicIntExp): return 1
