@@ -1,0 +1,12 @@
+parties: 4
+nodes: 43510
+edges: 89783
+public nodes: 43
+public edges: 105
+
+
+# AS peering information inferred from Oregon route-views BGP data, from March 31 2001
+# AS peering information inferred from Oregon route-views BGP data, from April 28 2001
+# AS peering information inferred from Oregon route-views BGP data, from May 05 2001
+# AS peering information inferred from Oregon route-views BGP data, from May 12 2001
+
