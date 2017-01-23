@@ -2,7 +2,8 @@ import random
 import os
 
 def compute_diameter(nodes, edges):
-    distances = { n: { n1: float(inf) for n1 in nodes } for n in nodes }
+    print "diameter"
+    distances = { n: { n1: float("inf") for n1 in nodes } for n in nodes }
 
     for n in nodes:
         distances[n][n] = 0
@@ -14,8 +15,8 @@ def compute_diameter(nodes, edges):
     for k in nodes:
         for i in nodes:
             for j in nodes:
-                if A[i][k] + A[k][j] < A[i][j]:
-                    A[i][j] = A[i][k] + A[k][j]
+                if distances[i][k] + distances[k][j] < distances[i][j]:
+                    distances[i][j] = distances[i][k] + distances[k][j]
                     
     diameter = 0
     for n1 in nodes:
@@ -26,10 +27,11 @@ def compute_diameter(nodes, edges):
 
 # generate a simple graph given the number of nodes and edges.
 def gen_local_graph(prefix, n, e):
+    print "LOCAL " + prefix
     prefix = prefix + "_"
 
-    nodes_list = [ prefix + str(n+1) for n in range(n) ]
-    values_list = [ 0 if random.random() < 0.33 else "inf" for n in range(n) ]
+    nodes_list = [ (prefix + str(n1+1)) for n1 in range(n) ]
+    values_list = [ (0 if random.random() < 0.33 else "inf") for n1 in range(n) ]
     edges_list = [ (nodes_list[i], nodes_list[i+1]) for i in range(len(nodes_list) - 1) ]
     all_edges = { (nodes_list[i], nodes_list[j]) for i in range(len(nodes_list) - 1) for j in range(i, len(nodes_list)) if abs(i - j) > 1 }
 
@@ -38,6 +40,7 @@ def gen_local_graph(prefix, n, e):
         edges_list = edges_list + list(all_edges)
     elif e > 0: # pick e edges
         edges_list = edges_list + random.sample(all_edges, e)
+
 
     return nodes_list, values_list, edges_list
 
@@ -91,6 +94,7 @@ def gen_whole_graph(p, min_n, max_n, min_e, max_e, min_g, max_g, min_pe, max_pe)
         gateways = gateways + g
         gateways_map[p] = g
 
+    print "PUBLIC"
     e = random.randint(min_pe, max_pe)
     e = gen_edges(parties_list, gateways_map, e)
     return ( parties_list, graphes, gateways_map, (gateways, compute_diameter(gateways, e), e) )
