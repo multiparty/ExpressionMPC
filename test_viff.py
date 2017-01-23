@@ -1,7 +1,7 @@
 from Expressions import *
 from Simplifiers import AgressiveRedundantMinSimplifier
 from EvaluatorsViff import ViffEvaluator, INFINITY
-from tests.graph_io import *
+from graphs.graph_io import *
 
 from collections import deque
 
@@ -32,7 +32,7 @@ INITIALIZATION
 """
 time_ = time()
 
-directory = "AS/bench7"
+directory = "graphs/AS_OREGON/bench7"
 ID = sys.argv[2]
 ID = int(ID[ID.index("-")+1:ID.index(".")])
 ID = str(ID)
