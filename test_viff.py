@@ -32,7 +32,7 @@ INITIALIZATION
 """
 time_ = time()
 
-directory = "AS/bench6"
+directory = "AS/bench7"
 ID = sys.argv[2]
 ID = int(ID[ID.index("-")+1:ID.index(".")])
 ID = str(ID)
