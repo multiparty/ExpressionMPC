@@ -53,11 +53,11 @@ ID = str(ID)
 print ID
 
 parties = read_parties(directory)
-public_nodes, public_diameter, public_edges = read_public(directory)
-all_values, nodes_per_party = {}, {}
+_, public_diameter, public_edges = read_public(directory)
+public_nodes, all_values, nodes_per_party = [], {}, {}
 for party in parties:
     nodes, values, diameter, _, edges = read_party(directory, str(party))
-    public_nodes += public_nodes + nodes
+    public_nodes += nodes
     public_diameter += diameter
     public_edges += edges
     
