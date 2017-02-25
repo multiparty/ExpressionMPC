@@ -1,0 +1,4 @@
+#!/bin/bash
+python test_mpc_naive.py --no-ssl configs/player-1.ini > o1.txt 2>&1 &
+python test_mpc_naive.py --no-ssl configs/player-2.ini > o2.txt 2>&1 &
+python test_mpc_naive.py --no-ssl configs/player-3.ini
